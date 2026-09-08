@@ -178,21 +178,21 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 .city-body{padding:14px 18px 16px;display:flex;flex-direction:column;gap:12px;flex:1}
 
-.clock{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.head{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.timeblock{min-width:0}
+.clock{display:flex;align-items:baseline;gap:10px}
 .clock .big{font-size:var(--clock);font-weight:500;letter-spacing:-.03em;line-height:1}
 .clock .ampm{font-size:1rem;font-weight:600;color:var(--muted);letter-spacing:.04em}
-.clock .h24{margin-left:auto;font-size:.95rem;color:var(--muted);font-weight:500}
-.datel{font-size:.83rem;color:var(--muted);margin-top:-6px}
-.datel .rel{color:var(--accent);font-weight:600}
+.datel{font-size:.83rem;color:var(--muted);margin-top:3px}
 
-.wx{display:flex;align-items:center;gap:14px;padding-top:2px;border-top:1px solid var(--line-soft)}
+.wxblock{display:flex;align-items:center;gap:11px;flex:none}
 .wx-icon{flex:none;width:38px;height:38px;color:var(--ink-2)}
-.wx-temp{display:flex;align-items:baseline;gap:8px}
+.wxcol{display:flex;flex-direction:column;align-items:flex-end;gap:1px;min-width:0}
+.wx-temp{display:flex;align-items:baseline;gap:7px}
 .wx-temp .f{font-size:1.7rem;font-weight:500;letter-spacing:-.02em;line-height:1}
 .wx-temp .c{font-size:1rem;color:var(--muted);font-weight:500}
-.wx-meta{min-width:0}
-.wx-cond{font-size:.92rem;font-weight:500;line-height:1.3}
-.wx-sub{font-size:.79rem;color:var(--muted)}
+.wx-cond{font-size:.88rem;font-weight:500;line-height:1.25;text-align:right;white-space:nowrap}
+.wx-sub{font-size:.78rem;color:var(--muted);padding-top:9px;border-top:1px solid var(--line-soft)}
 
 .sun{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto}
 .suncell{
@@ -603,17 +603,23 @@ function cardHTML(slot){
       '</div>'+
     '</div>'+
     '<div class="city-body">'+
-      '<div class="clock">'+
-        '<span class="big num" id="t12-'+slot+'">--:--</span>'+
-        '<span class="ampm" id="ap-'+slot+'"></span>'+
-        '<span class="h24 num" id="t24-'+slot+'"></span>'+
+      '<div class="head">'+
+        '<div class="timeblock">'+
+          '<div class="clock">'+
+            '<span class="big num" id="t12-'+slot+'">--:--</span>'+
+            '<span class="ampm" id="ap-'+slot+'"></span>'+
+          '</div>'+
+          '<div class="datel" id="date-'+slot+'"></div>'+
+        '</div>'+
+        '<div class="wxblock">'+
+          '<span id="wxicon-'+slot+'">'+icon("cloud")+'</span>'+
+          '<div class="wxcol">'+
+            '<div class="wx-temp"><span class="f num" id="tf-'+slot+'">--&deg;</span><span class="c num" id="tc-'+slot+'"></span></div>'+
+            '<div class="wx-cond" id="cond-'+slot+'">Loading</div>'+
+          '</div>'+
+        '</div>'+
       '</div>'+
-      '<div class="datel" id="date-'+slot+'"></div>'+
-      '<div class="wx" id="wx-'+slot+'">'+
-        '<span id="wxicon-'+slot+'">'+icon("cloud")+'</span>'+
-        '<div class="wx-temp"><span class="f num" id="tf-'+slot+'">--&deg;</span><span class="c num" id="tc-'+slot+'"></span></div>'+
-        '<div class="wx-meta"><div class="wx-cond" id="cond-'+slot+'">Loading</div><div class="wx-sub" id="wxsub-'+slot+'"></div></div>'+
-      '</div>'+
+      '<div class="wx-sub" id="wxsub-'+slot+'"></div>'+
       '<div class="sun">'+
         '<div class="suncell">'+sunGraphic("rise")+'<div><div class="k">Sunrise</div><div class="v num" id="sr-'+slot+'">&mdash;</div></div></div>'+
         '<div class="suncell">'+sunGraphic("set")+'<div><div class="k">Sunset</div><div class="v num" id="ss-'+slot+'">&mdash;</div></div></div>'+
@@ -785,7 +791,6 @@ function renderCity(slot, now){
   document.getElementById("region-"+slot).textContent = p.region || tz.replace(/_/g," ");
   document.getElementById("t12-"+slot).textContent = h12(h) + ":" + pr.minute;
   document.getElementById("ap-"+slot).textContent = ampm(h);
-  document.getElementById("t24-"+slot).textContent = pr.hour + ":" + pr.minute + ":" + pr.second;
 
   var s = drawSky(document.getElementById("sky-"+slot), hf, sr, ss);
   document.getElementById("phase-"+slot).textContent = s.phase;
@@ -931,8 +936,6 @@ if(!hadSaved) detectHome();
 setInterval(function(){
   var now = new Date();
   var pa = P(state.places.a.tz, now), pb = P(state.places.b.tz, now);
-  document.getElementById("t24-a").textContent = pa.hour+":"+pa.minute+":"+pa.second;
-  document.getElementById("t24-b").textContent = pb.hour+":"+pb.minute+":"+pb.second;
   document.getElementById("t12-a").textContent = h12(+pa.hour)+":"+pa.minute;
   document.getElementById("t12-b").textContent = h12(+pb.hour)+":"+pb.minute;
   document.getElementById("ap-a").textContent = ampm(+pa.hour);
