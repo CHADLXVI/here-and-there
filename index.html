@@ -29,8 +29,17 @@
   --cell-night:#CFD4E3;
   --dawn:#DC8A2E;
   --dusk:#C4553A;
+  --sky-h:84px;
+  --clock:2.4rem;
+  --pad-top:16px;
+  --pad-bot:20px;
+  --sec-gap:13px;
   --shadow:0 1px 2px rgba(20,22,31,.05), 0 8px 24px -12px rgba(20,22,31,.18);
   --radius:14px;
+}
+/* Fits a laptop viewport by default; breathes on a taller display. */
+@media (min-height:900px){
+  :root{--sky-h:100px;--clock:2.8rem;--pad-top:26px;--pad-bot:40px;--sec-gap:18px}
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -92,13 +101,20 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 .num{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
-.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 56px;display:flex;flex-direction:column;gap:20px}
+.wrap{max-width:1080px;margin:0 auto;padding:var(--pad-top) 20px var(--pad-bot);display:flex;flex-direction:column;gap:var(--sec-gap)}
 
 /* ---------- header ---------- */
-.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.brand h1{margin:0;font-size:1.5rem;font-weight:700;letter-spacing:-.02em;text-wrap:balance}
-.brand p{margin:2px 0 0;color:var(--muted);font-size:.86rem}
-.top-actions{display:flex;align-items:center;gap:8px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.brand{min-width:0;flex:1 1 260px}
+.brand h1{margin:0;font-size:1.3rem;font-weight:700;letter-spacing:-.02em;text-wrap:balance}
+.brand p{margin:1px 0 0;color:var(--muted);font-size:.82rem}
+.top-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto;flex-wrap:nowrap;justify-content:flex-end}
+.statuspill{
+  display:flex;align-items:center;gap:7px;
+  background:var(--surface);border:1px solid var(--line);border-radius:999px;
+  padding:5px 13px;box-shadow:var(--shadow);
+}
+.statuspill strong{font-size:.85rem;font-weight:600;white-space:nowrap;letter-spacing:-.01em}
 button.ghost{
   font:inherit;font-size:.82rem;font-weight:500;color:var(--ink-2);
   background:var(--surface);border:1px solid var(--line);border-radius:999px;
@@ -121,10 +137,11 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .bridge-sep{width:1px;align-self:stretch;background:var(--line-soft);min-height:24px}
 .bridge-note{color:var(--muted);font-size:.88rem}
 .offset-pill{
-  margin-left:auto;display:flex;align-items:baseline;gap:7px;
-  background:var(--surface-2);border:1px solid var(--line-soft);border-radius:999px;padding:6px 14px;
+  display:flex;align-items:baseline;gap:7px;
+  background:var(--surface-2);border:1px solid var(--line-soft);border-radius:999px;padding:5px 13px;
+  white-space:nowrap;
 }
-.offset-pill .num{font-size:1.02rem;font-weight:600}
+.offset-pill .num{font-size:.98rem;font-weight:600}
 .offset-pill span:last-child{font-size:.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 
 /* ---------- city cards ---------- */
@@ -137,7 +154,7 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* while a city search is open this card must sit above its neighbour */
 .city.searching{z-index:50}
 .sky{
-  position:relative;height:104px;overflow:hidden;
+  position:relative;height:var(--sky-h);overflow:hidden;
   border-radius:calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
 }
 .sky canvas{display:block;width:100%;height:100%}
@@ -150,37 +167,37 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sky-label .region{font-size:.78rem;opacity:.86;font-weight:400}
 .sky-label .phase{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;opacity:.9;white-space:nowrap;padding-bottom:3px}
 
-.city-body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:16px;flex:1}
+.city-body{padding:14px 18px 16px;display:flex;flex-direction:column;gap:12px;flex:1}
 
 .clock{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-.clock .big{font-size:2.9rem;font-weight:500;letter-spacing:-.03em;line-height:1}
+.clock .big{font-size:var(--clock);font-weight:500;letter-spacing:-.03em;line-height:1}
 .clock .ampm{font-size:1rem;font-weight:600;color:var(--muted);letter-spacing:.04em}
 .clock .h24{margin-left:auto;font-size:.95rem;color:var(--muted);font-weight:500}
-.datel{font-size:.86rem;color:var(--muted);margin-top:-8px}
+.datel{font-size:.83rem;color:var(--muted);margin-top:-6px}
 .datel .rel{color:var(--accent);font-weight:600}
 
 .wx{display:flex;align-items:center;gap:14px;padding-top:2px;border-top:1px solid var(--line-soft)}
-.wx-icon{flex:none;width:44px;height:44px;color:var(--ink-2)}
+.wx-icon{flex:none;width:38px;height:38px;color:var(--ink-2)}
 .wx-temp{display:flex;align-items:baseline;gap:8px}
-.wx-temp .f{font-size:1.9rem;font-weight:500;letter-spacing:-.02em;line-height:1}
+.wx-temp .f{font-size:1.7rem;font-weight:500;letter-spacing:-.02em;line-height:1}
 .wx-temp .c{font-size:1rem;color:var(--muted);font-weight:500}
 .wx-meta{min-width:0}
 .wx-cond{font-size:.92rem;font-weight:500;line-height:1.3}
 .wx-sub{font-size:.79rem;color:var(--muted)}
 
-.sun{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto}
+.sun{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto}
 .suncell{
-  background:var(--surface-2);border-radius:10px;padding:9px 12px;
-  display:flex;align-items:center;gap:10px;
+  background:var(--surface-2);border-radius:10px;padding:8px 11px;
+  display:flex;align-items:center;gap:9px;
 }
 .suncell .k{font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
 .suncell .v{font-size:1rem;font-weight:500;margin-top:1px;white-space:nowrap}
-.sunicon{width:26px;height:26px;flex:none}
+.sunicon{width:24px;height:24px;flex:none}
 .sunicon.rise{color:var(--dawn)}
 .sunicon.set{color:var(--dusk)}
 
 /* search */
-.search{position:relative;padding:0 20px 18px}
+.search{position:relative;padding:0 18px 12px}
 .search input{
   width:100%;font:inherit;font-size:.86rem;color:var(--ink);
   background:var(--surface-2);border:1px solid var(--line-soft);border-radius:9px;
@@ -189,7 +206,7 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .search input::placeholder{color:var(--muted)}
 .search input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
 .results{
-  position:absolute;left:20px;right:20px;top:calc(100% - 14px);z-index:20;
+  position:absolute;left:18px;right:18px;top:calc(100% - 14px);z-index:20;
   background:var(--surface);border:1px solid var(--line);border-radius:11px;
   box-shadow:var(--shadow);overflow:hidden;max-height:270px;overflow-y:auto;
 }
@@ -202,7 +219,7 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .results button:hover,.results button:focus-visible{background:var(--accent-soft);outline:none}
 .results .r-sub{display:block;color:var(--muted);font-size:.76rem}
 .results .empty{padding:11px 13px;color:var(--muted);font-size:.82rem}
-.recents{display:flex;flex-wrap:wrap;gap:6px;padding:10px 20px 0}
+.recents{display:flex;flex-wrap:wrap;gap:6px;padding:6px 18px 0}
 .recents button{
   font:inherit;font-size:.75rem;background:var(--surface-2);color:var(--ink-2);
   border:1px solid var(--line-soft);border-radius:999px;padding:4px 10px;cursor:pointer;
@@ -213,15 +230,16 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* ---------- day strip ---------- */
 .strip{
   background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
-  box-shadow:var(--shadow);padding:18px 20px 16px;
+  box-shadow:var(--shadow);padding:14px 18px 12px;
 }
-.strip h2{margin:0 0 3px;font-size:.72rem;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);font-weight:600}
-.strip .lede{margin:0 0 16px;font-size:.88rem;color:var(--ink-2)}
+.strip-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.strip h2{margin:0;font-size:.7rem;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);font-weight:600;white-space:nowrap}
+.strip .lede{margin:0;font-size:.82rem;color:var(--ink-2)}
 .tl{position:relative}
-.tl-row{display:flex;align-items:center;gap:12px;margin-bottom:7px}
+.tl-row{display:flex;align-items:center;gap:12px;margin-bottom:5px}
 .tl-name{width:104px;flex:none;font-size:.78rem;font-weight:600;color:var(--ink-2);text-align:right;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.track{flex:1;display:flex;height:26px;border-radius:6px;overflow:hidden;border:1px solid var(--line-soft)}
+.track{flex:1;display:flex;height:22px;border-radius:6px;overflow:hidden;border:1px solid var(--line-soft)}
 .cell{flex:1;position:relative}
 .cell.night{background:var(--cell-night)}
 .cell.day{background:var(--cell-day)}
@@ -238,7 +256,8 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   font-size:.6rem;font-weight:700;letter-spacing:.1em;color:var(--accent);
   background:var(--surface);padding:0 4px;
 }
-.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft);font-size:.75rem;color:var(--muted)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-size:.73rem;color:var(--muted)}
+.legend .credit{margin-left:auto;text-align:right}
 .legend span{display:flex;align-items:center;gap:6px}
 .legend i{width:12px;height:12px;border-radius:3px;display:block;border:1px solid var(--line-soft)}
 
@@ -246,11 +265,12 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   background:var(--warn-soft);border:1px solid var(--warn);color:var(--warn);
   border-radius:10px;padding:10px 14px;font-size:.84rem;
 }
-.foot{font-size:.76rem;color:var(--muted);text-align:center}
-.foot a{color:var(--muted)}
 
+@media (max-width:1180px){ .top-actions .stamp{display:none} }
+@media (max-width:1000px){ .top-actions{flex-wrap:wrap} }
 @media (max-width:840px){
   .cities{grid-template-columns:1fr}
+  .legend .credit{margin-left:0}
   .tl-name{width:74px;font-size:.72rem}
   .axis,.overlap{margin-left:86px}
   .axis span{font-size:.6rem}
@@ -265,44 +285,40 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <header class="top">
     <div class="brand">
       <h1>Here and There</h1>
-      <p>Two clocks, two skies. Starts on your time zone &mdash; change either city any time.</p>
+      <p id="callNote">Working it out&hellip;</p>
     </div>
-    <div class="top-actions">
+    <div class="top-actions" aria-live="polite">
       <span class="stamp" id="stamp">Loading weather&hellip;</span>
+      <span class="statuspill">
+        <span class="status-dot" id="dot" style="background:var(--rest)"></span>
+        <strong id="callStatus">Working it out&hellip;</strong>
+      </span>
+      <span class="offset-pill">
+        <span class="num" id="offsetVal">&mdash;</span>
+        <span id="offsetDir">offset</span>
+      </span>
       <button class="ghost" id="refresh" type="button">Refresh</button>
     </div>
   </header>
 
   <div id="errbox"></div>
 
-  <section class="bridge" aria-live="polite">
-    <div class="bridge-main">
-      <span class="status-dot" id="dot" style="background:var(--rest)"></span>
-      <strong id="callStatus">Working it out&hellip;</strong>
-    </div>
-    <div class="bridge-sep" aria-hidden="true"></div>
-    <div class="bridge-note" id="callNote"></div>
-    <div class="offset-pill">
-      <span class="num" id="offsetVal">&mdash;</span>
-      <span id="offsetDir">offset</span>
-    </div>
-  </section>
-
   <section class="cities" id="cities"></section>
 
   <section class="strip">
-    <h2>The next 24 hours, side by side</h2>
-    <p class="lede" id="stripLede">Each block is one hour of <span id="stripAnchor">your</span> day. Green means both of you are awake.</p>
+    <div class="strip-head">
+      <h2>The next 24 hours</h2>
+      <p class="lede" id="stripLede">Each block is one hour of <span id="stripAnchor">your</span> day &mdash; green means you're both awake.</p>
+    </div>
     <div class="tl" id="tl"></div>
     <div class="legend">
       <span><i style="background:var(--cell-day)"></i> Daylight</span>
       <span><i style="background:var(--cell-night)"></i> Dark</span>
       <span><i style="background:var(--good);opacity:.55"></i> Reachable hours (7:30&ndash;21:30 local)</span>
       <span><i style="background:var(--accent)"></i> Right now</span>
+      <span class="credit">Weather from Open-Meteo &middot; clocks run offline</span>
     </div>
   </section>
-
-  <p class="foot">Weather and city lookup from Open-Meteo. Clocks keep running with or without a connection.</p>
 </div>
 <script>
 (function(){
@@ -873,7 +889,7 @@ function renderStrip(A, B, now){
       '<div class="overlap" title="Both awake">'+overlap+'</div>'
     + '<div class="tl-row"><div class="tl-name">'+esc(state.places.a.name)+'</div><div class="track" id="trackA">'+track("a","dayA","okA")+'</div></div>'
     + '<div class="axis">'+labels("ha")+'</div>'
-    + '<div class="tl-row" style="margin-top:12px"><div class="tl-name">'+esc(state.places.b.name)+'</div><div class="track">'+track("b","dayB","okB")+'</div></div>'
+    + '<div class="tl-row" style="margin-top:8px"><div class="tl-name">'+esc(state.places.b.name)+'</div><div class="track">'+track("b","dayB","okB")+'</div></div>'
     + '<div class="axis">'+labels("hb")+'</div>'
     + '<div class="nowline" id="nowline"></div>';
 
