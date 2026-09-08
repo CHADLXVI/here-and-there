@@ -15,9 +15,25 @@ Live time and weather in two places at once — built to keep track of what time
 
 Either city can be changed at any time — search any city worldwide. Your two picks and your recent cities are remembered in your own browser.
 
+## Install it
+
+It's a progressive web app, so it installs without any app store:
+
+- **iPhone / iPad** — open the link in Safari, tap Share, then **Add to Home Screen**
+- **Android** — open in Chrome and take the **Install app** prompt, or Menu → Add to Home screen
+- **Desktop Chrome / Edge** — install icon at the right end of the address bar
+
+Installed, it launches full screen with its own icon and no browser chrome.
+
+## Offline
+
+A service worker caches the page itself, so it opens with no connection at all and the clocks keep running — they're pure browser math, no network needed.
+
+Weather is deliberately **not** cached. Showing a stale temperature as if it were current would be misleading, so offline those requests simply fail and the page says the weather is unavailable while the clocks stay correct.
+
 ## How it works
 
-One self-contained HTML file. No build step, no framework, no server, no API key, no tracking.
+One HTML file plus a manifest, a service worker, and three icons. No build step, no framework, no server, no API key, no tracking.
 
 - Weather and city search come from [Open-Meteo](https://open-meteo.com/), which is free and needs no key
 - Clocks and time-zone math use the browser's own `Intl` API, so daylight saving is handled correctly on both ends

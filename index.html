@@ -8,6 +8,10 @@
 <meta name="theme-color" content="#EBECF2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B0D14" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-title" content="Here &amp; There">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Here and There">
 <meta property="og:description" content="Live time and weather in two cities at once.">
@@ -951,6 +955,15 @@ document.addEventListener("visibilitychange", function(){
 });
 var rt;
 window.addEventListener("resize", function(){ clearTimeout(rt); rt = setTimeout(render, 180); });
+
+/* Offline support. isSecureContext covers https and localhost, and is false
+   for file:// — so opening this file straight from disk still works, it just
+   skips the service worker. */
+if("serviceWorker" in navigator && window.isSecureContext){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
 })();
 </script>
 </body>
