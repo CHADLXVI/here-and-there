@@ -131,11 +131,11 @@ body{
 .wrap{max-width:1080px;margin:0 auto;padding:var(--pad-top) 20px var(--pad-bot);display:flex;flex-direction:column;gap:var(--sec-gap)}
 
 /* ---------- header ---------- */
-.top{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
-.brand{min-width:0}
-.brand h1{margin:0;font-family:"Young Serif",Georgia,"Times New Roman",serif;font-size:1.7rem;font-weight:400;letter-spacing:-.01em;text-wrap:balance}
-.brand p{margin:2px 0 0;color:var(--muted);font-size:.82rem}
-.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.brand{min-width:0;flex:1 1 260px}
+.brand h1{margin:0;font-family:"Young Serif",Georgia,"Times New Roman",serif;font-size:1.4rem;font-weight:400;letter-spacing:-.01em;text-wrap:balance}
+.brand p{margin:1px 0 0;color:var(--muted);font-size:.82rem}
+.top-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto;flex-wrap:nowrap;justify-content:flex-end}
 .statuspill{
   display:flex;align-items:center;gap:7px;
   background:var(--surface);border:1px solid var(--line);border-radius:999px;
@@ -540,7 +540,11 @@ function mixSet(s1,s2,t){ return [mix(s1[0],s2[0],t), mix(s1[1],s2[1],t), mix(s1
 function skyFor(h, sr, ss){
   // returns {stops:[3], phase:"", isDay:bool}
   var dawnA = sr-1.2, dawnB = sr+0.7, duskA = ss-0.7, duskB = ss+1.2;
-  if(h < dawnA || h >= duskB) return {stops:SKIES.night, phase:"Night", day:false};
+  if(h < dawnA || h >= duskB){
+    // same sky either side of midnight, but "night" is the wrong word at 5am
+    var word = (h >= duskB) ? "Night" : (h < 4 ? "Late night" : "Early morning");
+    return {stops:SKIES.night, phase:word, day:false};
+  }
   if(h < sr)    return {stops:mixSet(SKIES.night,SKIES.dawn,(h-dawnA)/(sr-dawnA)), phase:"Before sunrise", day:false};
   if(h < dawnB) return {stops:mixSet(SKIES.dawn,SKIES.day,(h-sr)/(dawnB-sr)), phase:"Sunrise", day:true};
   if(h < duskA) return {stops:SKIES.day, phase:(h < 12 ? "Morning" : "Afternoon"), day:true};
