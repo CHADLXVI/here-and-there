@@ -218,11 +218,15 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wx-temp .f{font-size:1.7rem;font-weight:500;letter-spacing:-.02em;line-height:1}
 .wx-temp .c{font-size:1rem;color:var(--muted);font-weight:500}
 .wx-cond{font-size:.88rem;font-weight:500;line-height:1.25;text-align:right;white-space:nowrap}
-.wx-sub{font-size:.78rem;color:var(--muted);padding-top:9px;border-top:1px solid var(--line-soft)}
+.wx-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding-top:9px;border-top:1px solid var(--line-soft);
+}
+.wx-sub{font-size:.78rem;color:var(--muted);min-width:0}
 .wxstamp{
-  display:flex;align-items:center;gap:7px;
-  background:var(--surface-2);border:1px solid var(--line-soft);border-radius:9px;
-  padding:7px 11px;font-size:.74rem;color:var(--muted);
+  display:flex;align-items:center;gap:6px;flex:none;
+  background:var(--surface-2);border:1px solid var(--line-soft);border-radius:999px;
+  padding:4px 10px;font-size:.71rem;color:var(--muted);white-space:nowrap;
 }
 .wxstamp svg{flex:none;opacity:.7}
 
@@ -660,12 +664,14 @@ function cardHTML(slot){
           '</div>'+
         '</div>'+
       '</div>'+
-      '<div class="wx-sub" id="wxsub-'+slot+'"></div>'+
+      '<div class="wx-row">'+
+        '<div class="wx-sub" id="wxsub-'+slot+'"></div>'+
+        '<div class="wxstamp" id="stamp-'+slot+'">Loading weather&hellip;</div>'+
+      '</div>'+
       '<div class="sun">'+
         '<div class="suncell">'+sunGraphic("rise")+'<div><div class="k">Sunrise</div><div class="v num" id="sr-'+slot+'">&mdash;</div></div></div>'+
         '<div class="suncell">'+sunGraphic("set")+'<div><div class="k">Sunset</div><div class="v num" id="ss-'+slot+'">&mdash;</div></div></div>'+
       '</div>'+
-      '<div class="wxstamp" id="stamp-'+slot+'">Loading weather&hellip;</div>'+
     '</div>'+
     '<div class="search">'+
       '<input type="text" id="q-'+slot+'" autocomplete="off" spellcheck="false" placeholder="Change city… (type a city name)" aria-label="Change city">'+
@@ -876,15 +882,15 @@ function renderCity(slot, now){
   return {hf:hf, sr:sr, ss:ss, dayKey: dayKey(tz, now), weekday: pr.weekday};
 }
 
-var REACH_START = 7.5, REACH_END = 21.5;
-function reachable(h){ return h >= REACH_START && h < REACH_END; }
-
-/* Three grades of "awake enough to pick up":
-   1 = comfortable, 2 = a bit early / a bit late, 3 = the 6am and 10pm stretch. */
+/* Three grades of "awake enough to pick up", nested widest-last. The chart,
+   the status pill and the countdown all read from this one table. */
+var BEST = {start:8, end:20.5},
+    OKAY = {start:6.75, end:22},
+    ANY  = {start:6, end:23};
 function hourTier(h){
-  if(h >= 8    && h < 20.5) return 1;
-  if(h >= 6.75 && h < 22)   return 2;
-  if(h >= 6    && h < 23)   return 3;
+  if(h >= BEST.start && h < BEST.end) return 1;
+  if(h >= OKAY.start && h < OKAY.end) return 2;
+  if(h >= ANY.start  && h < ANY.end)  return 3;
   return 0;
 }
 function talkTier(ha, hb){
@@ -896,17 +902,17 @@ function talkTier(ha, hb){
 /* Each city is reachable in its own local [7:30, 21:30) window. Express both
    as hour offsets from now, then intersect - that gives an exact open/close,
    not the hour-by-hour scan the note used to do. */
-function windowsFor(h){
-  var span = REACH_END - REACH_START, out = [];
+function windowsFor(h, W){
+  var span = W.end - W.start, out = [];
   /* the window we are already inside, if any - it is a partial one */
-  if(h >= REACH_START && h < REACH_END) out.push({open:0, close:REACH_END - h});
+  if(h >= W.start && h < W.end) out.push({open:0, close:W.end - h});
   /* then whole windows on the following days */
-  var first = (h < REACH_START) ? (REACH_START - h) : (24 - h + REACH_START);
+  var first = (h < W.start) ? (W.start - h) : (24 - h + W.start);
   for(var d = 0; d < 3; d++) out.push({open:first + 24*d, close:first + 24*d + span});
   return out;
 }
-function callWindow(hA, hB){
-  var wa = windowsFor(hA), wb = windowsFor(hB), best = null;
+function callWindow(hA, hB, W){
+  var wa = windowsFor(hA, W), wb = windowsFor(hB, W), best = null;
   for(var i = 0; i < wa.length; i++){
     for(var j = 0; j < wb.length; j++){
       var open = Math.max(wa[i].open, wb[j].open), close = Math.min(wa[i].close, wb[j].close);
@@ -919,7 +925,7 @@ function callWindow(hA, hB){
 function dur(ms){
   if(!(ms > 0)) ms = 0;
   var t = Math.round(ms/1000), h = Math.floor(t/3600), m = Math.floor((t%3600)/60), sec = t%60;
-  return h > 0 ? h + "h " + pad(m) + "m" : m + ":" + pad(sec);
+  return h > 0 ? h + "h " + pad(m) + "m" : m + "m " + pad(sec) + "s";
 }
 var countdown = null;   /* {kind:"opens"|"left", at: epoch ms} */
 function tickCountdown(){
@@ -939,7 +945,6 @@ function renderBridge(A, B, now){
   document.getElementById("offsetVal").textContent = (diff === 0 ? "" : (diff > 0 ? "+" : "−")) + hrs + (mins ? ":"+pad(mins) : "") + "h";
   document.getElementById("offsetDir").textContent = diff === 0 ? "same time" : (diff > 0 ? "ahead" : "behind");
 
-  var okA = reachable(A.hf), okB = reachable(B.hf);
   var dot = document.getElementById("dot"),
       st  = document.getElementById("callStatus"),
       note= document.getElementById("callNote");
@@ -948,28 +953,60 @@ function renderBridge(A, B, now){
               : (B.dayKey > A.dayKey ? "It’s already " + B.weekday + " in " + state.places.b.name + "."
                                      : "It’s still " + B.weekday + " in " + state.places.b.name + ".");
 
-  var w = callWindow(A.hf, B.hf);
+  /* two horizons: the comfortable one, and the widest the chart still shades */
+  var best = callWindow(A.hf, B.hf, BEST),
+      open = callWindow(A.hf, B.hf, ANY);
+  var inBest = best && best.open === 0,
+      inOpen = open && open.open === 0;
 
-  if(okA && okB && w){
+  /* when the pair is a stretch, name the city that makes it one */
+  function pinch(off){
+    var ha = A.hf + off, hb = B.hf + off;
+    var bad = hourTier(hb) > 1 ? "b" : (hourTier(ha) > 1 ? "a" : null);
+    if(!bad) return null;
+    var h = bad === "b" ? hb : ha;
+    return {name: state.places[bad].name, early: (((h % 24) + 24) % 24) < BEST.start};
+  }
+  function bothClocks(off){
+    return "<b>" + localClock(A.hf + off) + " in " + state.places.a.name + "</b> / <b>"
+         + localClock(B.hf + off) + " in " + state.places.b.name + "</b>";
+  }
+
+  if(inBest){
     dot.style.background = "var(--good)";
     st.textContent = "Good time to call";
-    countdown = {kind:"left", at: now.getTime() + w.close*3600e3};
-    note.innerHTML = dayNote + " You&rsquo;re both up until <b>" + localClock(A.hf + w.close) + " " + state.places.a.name
-      + "</b> &mdash; <b>" + dur(w.close*3600e3) + "</b> of overlap left.";
-  } else {
+    countdown = {kind:"left", at: now.getTime() + best.close*3600e3};
+    note.innerHTML = dayNote + " You&rsquo;re both comfortably up until " + bothClocks(best.close)
+      + " &mdash; <b>" + dur(best.close*3600e3) + "</b> of overlap left.";
+
+  } else if(inOpen){
+    var p = pinch(0);
     dot.style.background = "var(--warn)";
-    var who  = !okB ? state.places.b.name : state.places.a.name;
-    var whoH = !okB ? B.hf : A.hf;
-    st.textContent = (whoH < REACH_START ? "Too early in " : "Too late in ") + who;
-    if(w){
-      countdown = {kind:"opens", at: now.getTime() + w.open*3600e3};
-      note.innerHTML = dayNote + " The next good window opens at <b>" + localClock(A.hf + w.open) + " in "
-        + state.places.a.name + "</b>, which is <b>" + localClock(B.hf + w.open) + " in " + state.places.b.name
-        + "</b> &mdash; <b>" + dur(w.open*3600e3) + "</b> from now.";
-    } else {
-      countdown = null;
-      note.textContent = dayNote + " These two cities never share waking hours.";
-    }
+    st.textContent = p ? ((p.early ? "Early in " : "Late in ") + p.name + ", but awake") : "Worth a try";
+    countdown = {kind:"left", at: now.getTime() + open.close*3600e3};
+    note.innerHTML = dayNote + " Not the sweet spot, but you can reach each other for another <b>"
+      + dur(open.close*3600e3) + "</b>."
+      + (best ? " The comfortable window opens at " + bothClocks(best.open) + ", <b>"
+                + dur(best.open*3600e3) + "</b> from now." : "");
+
+  } else if(open){
+    var pn = pinch(open.open + 0.01);
+    var whoNow = hourTier(B.hf) === 0 ? state.places.b.name : state.places.a.name;
+    var hNow   = hourTier(B.hf) === 0 ? B.hf : A.hf;
+    dot.style.background = "var(--rest)";
+    st.textContent = (hNow < ANY.start ? "Too early in " : "Too late in ") + whoNow;
+    countdown = {kind:"opens", at: now.getTime() + open.open*3600e3};
+    var sameWindow = best && Math.abs(best.open - open.open) < 0.01;
+    note.innerHTML = dayNote + " " + (sameWindow ? "The next good window opens at " : "There&rsquo;s a workable window at ")
+      + bothClocks(open.open) + " &mdash; <b>" + dur(open.open*3600e3) + "</b> from now."
+      + (!sameWindow && best ? " The comfortable one starts at " + bothClocks(best.open) + ", <b>"
+                + dur(best.open*3600e3) + "</b> from now." : "");
+
+  } else {
+    countdown = null;
+    dot.style.background = "var(--rest)";
+    st.textContent = "No shared hours";
+    note.textContent = dayNote + " These two cities never share waking hours.";
   }
   tickCountdown();
 }
@@ -1009,7 +1046,7 @@ function renderStrip(A, B, now){
       i:i, ha:ha, hb:hb,
       dayA: ha >= A.sr && ha < A.ss,
       dayB: hb >= B.sr && hb < B.ss,
-      okA: reachable(ha), okB: reachable(hb)
+      okA: hourTier(ha) > 0, okB: hourTier(hb) > 0
     });
   }
   function labels(hourKey){
