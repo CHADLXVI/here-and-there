@@ -242,16 +242,17 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sunicon.set{color:var(--dusk)}
 
 /* search */
-.search{position:relative;padding:0 18px 12px}
+.pick{display:flex;align-items:center;gap:10px;padding:0 18px 14px}
+.search{position:relative;flex:0 1 210px;min-width:120px}
 .search input{
-  width:100%;font:inherit;font-size:.86rem;color:var(--ink);
-  background:var(--surface-2);border:1px solid var(--line-soft);border-radius:9px;
-  padding:9px 12px;transition:border-color .15s,background .15s;
+  width:100%;font:inherit;font-size:.8rem;color:var(--ink);
+  background:var(--surface-2);border:1px solid var(--line-soft);border-radius:8px;
+  padding:6px 10px;transition:border-color .15s,background .15s;
 }
 .search input::placeholder{color:var(--muted)}
 .search input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
 .results{
-  position:absolute;left:18px;right:18px;top:calc(100% - 14px);z-index:20;
+  position:absolute;left:0;top:calc(100% + 5px);z-index:20;min-width:260px;
   background:var(--surface);border:1px solid var(--line);border-radius:11px;
   box-shadow:var(--shadow);overflow:hidden;max-height:270px;overflow-y:auto;
 }
@@ -264,7 +265,7 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .results button:hover,.results button:focus-visible{background:var(--accent-soft);outline:none}
 .results .r-sub{display:block;color:var(--muted);font-size:.76rem}
 .results .empty{padding:11px 13px;color:var(--muted);font-size:.82rem}
-.recents{display:flex;flex-wrap:wrap;gap:6px;padding:6px 18px 0}
+.recents{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 auto;justify-content:flex-end}
 .recents button{
   font:inherit;font-size:.75rem;background:var(--surface-2);color:var(--ink-2);
   border:1px solid var(--line-soft);border-radius:999px;padding:4px 10px;cursor:pointer;
@@ -338,11 +339,6 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <h1>Here and There</h1>
     </div>
     <div class="top-actions" aria-live="polite">
-      <span class="statuspill">
-        <span class="status-dot" id="dot" style="background:var(--rest)"></span>
-        <strong id="callStatus">Working it out&hellip;</strong>
-        <span class="countdown num" id="callCountdown"></span>
-      </span>
       <span class="offset-pill">
         <span class="num" id="offsetVal">&mdash;</span>
         <span id="offsetDir">offset</span>
@@ -673,11 +669,13 @@ function cardHTML(slot){
         '<div class="suncell">'+sunGraphic("set")+'<div><div class="k">Sunset</div><div class="v num" id="ss-'+slot+'">&mdash;</div></div></div>'+
       '</div>'+
     '</div>'+
-    '<div class="search">'+
-      '<input type="text" id="q-'+slot+'" autocomplete="off" spellcheck="false" placeholder="Change city… (type a city name)" aria-label="Change city">'+
-      '<div id="res-'+slot+'"></div>'+
+    '<div class="pick">'+
+      '<div class="search">'+
+        '<input type="text" id="q-'+slot+'" autocomplete="off" spellcheck="false" placeholder="Change city…" aria-label="Change city">'+
+        '<div id="res-'+slot+'"></div>'+
+      '</div>'+
+      '<div class="recents" id="rec-'+slot+'"></div>'+
     '</div>'+
-    '<div class="recents" id="rec-'+slot+'"></div>'+
   '</article>';
 }
 document.getElementById("cities").innerHTML = cardHTML("a") + cardHTML("b");
@@ -945,9 +943,11 @@ function renderBridge(A, B, now){
   document.getElementById("offsetVal").textContent = (diff === 0 ? "" : (diff > 0 ? "+" : "−")) + hrs + (mins ? ":"+pad(mins) : "") + "h";
   document.getElementById("offsetDir").textContent = diff === 0 ? "same time" : (diff > 0 ? "ahead" : "behind");
 
-  var dot = document.getElementById("dot"),
-      st  = document.getElementById("callStatus"),
-      note= document.getElementById("callNote");
+  var note = document.getElementById("callNote");
+  /* the header pill was removed; these stay optional so the logic below
+     can keep setting them if it ever comes back */
+  var dot = document.getElementById("dot") || {style:{}},
+      st  = document.getElementById("callStatus") || {};
 
   var dayNote = A.dayKey === B.dayKey ? "Same calendar day."
               : (B.dayKey > A.dayKey ? "It’s already " + B.weekday + " in " + state.places.b.name + "."
