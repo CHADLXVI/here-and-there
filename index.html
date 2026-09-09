@@ -19,7 +19,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2714%27%20fill%3D%27%2318203A%27%2F%3E%3Cpath%20d%3D%27M0%2014A14%2014%200%200%201%2014%200h18v64H14A14%2014%200%200%201%200%2050z%27%20fill%3D%27%233E7BC9%27%2F%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2733%27%20r%3D%278.5%27%20fill%3D%27%23FFE9A8%27%2F%3E%3Cpath%20d%3D%27M52%2021a11%2011%200%201%200%200%2022%2013.5%2013.5%200%200%201%200-22z%27%20fill%3D%27%23EDEFFB%27%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Young+Serif&display=swap">
 <style>
 :root{
   --ground:#EBECF2;
@@ -40,6 +40,12 @@
   --rest-soft:#E9EAF1;
   --cell-day:#FBE7C2;
   --cell-night:#CFD4E3;
+  /* timeline: both cities share one amber, light = daylight, dark = night */
+  --band-day:#F0980E; --band-night:#43300F;
+  --band-ink-dark:#3A2705; --band-ink-light:#FFE1A0;
+  /* talk windows, best to marginal */
+  --talk-1:#0FA457;  --talk-2:#5BC98A;  --talk-3:#AEE3C5;
+  --talk-0:#E7EAF1;
   --dawn:#DC8A2E;
   --dusk:#C4553A;
   --sky-h:84px;
@@ -74,6 +80,10 @@
     --rest-soft:#1E2333;
         --cell-day:#4C3A17;
     --cell-night:#232A3D;
+    --band-day:#F5A93C; --band-night:#4A3512;
+    --band-ink-dark:#3A2705; --band-ink-light:#FFEDC8;
+    --talk-1:#2BD46E;  --talk-2:#1B8F4C;  --talk-3:#12492C;
+    --talk-0:#1B2031;
     --dawn:#F0AE5B;
     --dusk:#E58567;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.7);
@@ -98,6 +108,10 @@
   --rest-soft:#1E2333;
     --cell-day:#4C3A17;
   --cell-night:#232A3D;
+  --band-day:#F5A93C; --band-night:#4A3512;
+  --band-ink-dark:#3A2705; --band-ink-light:#FFEDC8;
+  --talk-1:#2BD46E;  --talk-2:#1B8F4C;  --talk-3:#12492C;
+  --talk-0:#1B2031;
   --dawn:#F0AE5B;
   --dusk:#E58567;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -16px rgba(0,0,0,.7);
@@ -117,11 +131,11 @@ body{
 .wrap{max-width:1080px;margin:0 auto;padding:var(--pad-top) 20px var(--pad-bot);display:flex;flex-direction:column;gap:var(--sec-gap)}
 
 /* ---------- header ---------- */
-.top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.brand{min-width:0;flex:1 1 260px}
-.brand h1{margin:0;font-size:1.3rem;font-weight:700;letter-spacing:-.02em;text-wrap:balance}
-.brand p{margin:1px 0 0;color:var(--muted);font-size:.82rem}
-.top-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto;flex-wrap:nowrap;justify-content:flex-end}
+.top{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.brand{min-width:0}
+.brand h1{margin:0;font-family:"Young Serif",Georgia,"Times New Roman",serif;font-size:1.7rem;font-weight:400;letter-spacing:-.01em;text-wrap:balance}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:.82rem}
+.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
 .statuspill{
   display:flex;align-items:center;gap:7px;
   background:var(--surface);border:1px solid var(--line);border-radius:999px;
@@ -248,31 +262,39 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .strip-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
 .strip h2{margin:0;font-size:.7rem;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);font-weight:600;white-space:nowrap}
 .strip .lede{margin:0;font-size:.82rem;color:var(--ink-2)}
-.tl{position:relative}
-.tl-row{display:flex;align-items:center;gap:12px;margin-bottom:5px}
-.tl-name{width:104px;flex:none;font-size:.78rem;font-weight:600;color:var(--ink-2);text-align:right;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.track{flex:1;display:flex;height:22px;border-radius:6px;overflow:hidden;border:1px solid var(--line-soft)}
-.cell{flex:1;position:relative}
-.cell.night{background:var(--cell-night)}
-.cell.day{background:var(--cell-day)}
-.cell.reach::after{content:"";position:absolute;inset:0;background:var(--good);opacity:.34}
-.axis{display:flex;margin-left:116px;margin-top:2px}
+.tl{position:relative;padding-top:14px}
+.tl-row{display:flex;align-items:center;gap:12px}
+.tl-name{width:104px;flex:none;font-size:.78rem;font-weight:700;color:var(--ink);text-align:right;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.tl-name svg{flex:none;opacity:.75}
+.track{flex:1;position:relative;display:flex;height:24px;border-radius:5px;overflow:hidden}
+.cell{flex:1}
+.cell.day{background:var(--band-day)}
+.cell.night{background:var(--band-night)}
+.glyph{position:absolute;top:50%;transform:translate(-50%,-50%);line-height:0;pointer-events:none}
+.glyph.sun{color:var(--band-ink-dark);opacity:.9}
+.glyph.moon{color:var(--band-ink-light);opacity:.8}
+
+.axis{display:flex;margin-left:116px;margin-top:3px}
 .axis span{flex:1;font-size:.66rem;color:var(--muted);text-align:left;transform:translateX(-1px)}
-.overlap{display:flex;margin-left:116px;height:6px;margin-bottom:7px}
-.overlap i{flex:1;display:block}
-.overlap{border-radius:3px;overflow:hidden}
-.overlap i.on{background:var(--good)}
-.nowline{position:absolute;top:0;bottom:14px;width:2px;background:var(--accent);left:0;pointer-events:none;border-radius:2px}
+
+/* the talk band, front and centre between the two cities */
+.talkrow{margin:9px 0}
+.talkrow .tl-name{color:var(--talk-1);font-size:.74rem;letter-spacing:.04em;text-transform:uppercase}
+.talkband{flex:1;display:flex;height:26px;border-radius:7px;overflow:hidden;background:var(--talk-0)}
+.talkband i{flex:1;display:block}
+.talkband i.t1{background:var(--talk-1)}
+.talkband i.t2{background:var(--talk-2)}
+.talkband i.t3{background:var(--talk-3)}
+
+.nowline{position:absolute;top:14px;bottom:0;width:2px;background:var(--accent);left:0;pointer-events:none;border-radius:2px}
 .nowline::before{
-  content:"NOW";position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+  content:"NOW";position:absolute;top:-14px;left:50%;transform:translateX(-50%);
   font-size:.6rem;font-weight:700;letter-spacing:.1em;color:var(--accent);
   background:var(--surface);padding:0 4px;
 }
-.legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-size:.73rem;color:var(--muted)}
-.legend .credit{margin-left:auto;text-align:right}
-.legend span{display:flex;align-items:center;gap:6px}
-.legend i{width:12px;height:12px;border-radius:3px;display:block;border:1px solid var(--line-soft)}
+.strip-foot{margin:9px 0 0;font-size:.72rem;color:var(--muted);text-align:right}
 
 .err{
   background:var(--warn-soft);border:1px solid var(--warn);color:var(--warn);
@@ -283,7 +305,6 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:1000px){ .top-actions{flex-wrap:wrap} }
 @media (max-width:840px){
   .cities{grid-template-columns:1fr}
-  .legend .credit{margin-left:0}
   .tl-name{width:74px;font-size:.72rem}
   .axis,.overlap{margin-left:86px}
   .axis span{font-size:.6rem}
@@ -320,17 +341,11 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
   <section class="strip">
     <div class="strip-head">
-      <h2>The next 24 hours</h2>
-      <p class="lede" id="stripLede">Each block is one hour of <span id="stripAnchor">your</span> day &mdash; green means you're both awake.</p>
+      <h2>When to call</h2>
+      <p class="lede" id="stripLede">Amber is daylight, dark is night. The green band between them is when you&rsquo;re both up &mdash; brightest green is the sweet spot.</p>
     </div>
     <div class="tl" id="tl"></div>
-    <div class="legend">
-      <span><i style="background:var(--cell-day)"></i> Daylight</span>
-      <span><i style="background:var(--cell-night)"></i> Dark</span>
-      <span><i style="background:var(--good);opacity:.55"></i> Reachable hours (7:30&ndash;21:30 local)</span>
-      <span><i style="background:var(--accent)"></i> Right now</span>
-      <span class="credit">Weather from Open-Meteo &middot; clocks run offline</span>
-    </div>
+    <p class="strip-foot">Weather from Open-Meteo &middot; clocks run offline</p>
   </section>
 </div>
 <script>
@@ -832,6 +847,20 @@ function renderCity(slot, now){
 var REACH_START = 7.5, REACH_END = 21.5;
 function reachable(h){ return h >= REACH_START && h < REACH_END; }
 
+/* Three grades of "awake enough to pick up":
+   1 = comfortable, 2 = a bit early / a bit late, 3 = the 6am and 10pm stretch. */
+function hourTier(h){
+  if(h >= 8    && h < 20.5) return 1;
+  if(h >= 6.75 && h < 22)   return 2;
+  if(h >= 6    && h < 23)   return 3;
+  return 0;
+}
+function talkTier(ha, hb){
+  var a = hourTier(ha), b = hourTier(hb);
+  if(!a || !b) return 0;
+  return Math.max(a, b);
+}
+
 function renderBridge(A, B, now){
   var tzA = state.places.a.tz, tzB = state.places.b.tz;
   var diff = (offsetMin(tzB, now) - offsetMin(tzA, now)) / 60;
@@ -877,6 +906,23 @@ function nextWindow(hfA, tzA, tzB, now){
   return "";
 }
 
+/* Where the middle of a local-time run lands on the strip, as a 0-1 fraction.
+   Returns null when the visible piece is too narrow to hold an icon. */
+function mod24(x){ return ((x % 24) + 24) % 24; }
+function runCentre(startH, endH, h0){
+  var p1 = mod24(startH - h0) / 24;
+  var len = mod24(endH - startH) / 24;
+  if(len <= 0) return null;
+  var p2 = p1 + len;
+  var pos, w;
+  if(p2 <= 1){ pos = p1 + len/2; w = len; }
+  else {
+    var a = 1 - p1, b = p2 - 1;
+    if(a >= b){ pos = p1 + a/2; w = a; } else { pos = b/2; w = b; }
+  }
+  return w < 0.075 ? null : pos;
+}
+
 function renderStrip(A, B, now){
   var tzA = state.places.a.tz, tzB = state.places.b.tz;
   var midnightA = new Date(now.getTime() - A.hf*3600e3);
@@ -891,24 +937,40 @@ function renderStrip(A, B, now){
       okA: reachable(ha), okB: reachable(hb)
     });
   }
-  function track(key, dayKeyName, okKey){
-    return cells.map(function(c){
-      return '<div class="cell '+(c[dayKeyName]?"day":"night")+(c[okKey]?" reach":"")+'"></div>';
-    }).join("");
-  }
   function labels(hourKey){
     return cells.map(function(c,i){
       return '<span>' + (i % 3 === 0 ? h12(Math.floor(c[hourKey])) + (Math.floor(c[hourKey]) < 12 ? "a" : "p") : "") + '</span>';
     }).join("");
   }
-  var overlap = cells.map(function(c){ return '<i class="'+((c.okA&&c.okB)?"on":"")+'"></i>'; }).join("");
+  function track(dayKeyName){
+    return cells.map(function(c){
+      return '<div class="cell '+(c[dayKeyName]?"day":"night")+'"></div>';
+    }).join("");
+  }
+  var band = cells.map(function(c){
+    var t = talkTier(c.ha, c.hb);
+    return '<i class="'+(t ? "t"+t : "")+'"></i>';
+  }).join("");
+
+  var sunSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/></svg>';
+  var moonSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>';
+  var phoneSvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.3 2"/></svg>';
+
+  /* one sun in the middle of daylight, one moon in the middle of the dark */
+  function glyphs(sr, ss, h0){
+    var out = "", d = runCentre(sr, ss, h0), n = runCentre(ss, sr, h0);
+    if(d != null) out += '<span class="glyph sun" style="left:'+(d*100).toFixed(2)+'%" title="Daylight">'+sunSvg+'</span>';
+    if(n != null) out += '<span class="glyph moon" style="left:'+(n*100).toFixed(2)+'%" title="Night">'+moonSvg+'</span>';
+    return out;
+  }
+  var h0A = fracHour(tzA, midnightA), h0B = fracHour(tzB, midnightA);
 
   document.getElementById("tl").innerHTML =
-      '<div class="overlap" title="Both awake">'+overlap+'</div>'
-    + '<div class="tl-row"><div class="tl-name">'+esc(state.places.a.name)+'</div><div class="track" id="trackA">'+track("a","dayA","okA")+'</div></div>'
+      '<div class="tl-row"><div class="tl-name">'+esc(state.places.a.name)+'</div><div class="track" id="trackA">'+track("dayA")+glyphs(A.sr, A.ss, h0A)+'</div></div>'
     + '<div class="axis">'+labels("ha")+'</div>'
-    + '<div class="tl-row" style="margin-top:8px"><div class="tl-name">'+esc(state.places.b.name)+'</div><div class="track">'+track("b","dayB","okB")+'</div></div>'
-    + '<div class="axis">'+labels("hb")+'</div>'
+    + '<div class="tl-row talkrow"><div class="tl-name">'+phoneSvg+'Talk</div><div class="talkband" title="Good times to reach each other">'+band+'</div></div>'
+    + '<div class="axis" style="margin-top:0;margin-bottom:3px">'+labels("hb")+'</div>'
+    + '<div class="tl-row"><div class="tl-name">'+esc(state.places.b.name)+'</div><div class="track">'+track("dayB")+glyphs(B.sr, B.ss, h0B)+'</div></div>'
     + '<div class="nowline" id="nowline"></div>';
 
   var tr = document.getElementById("trackA"), tl = document.getElementById("tl");
@@ -916,7 +978,6 @@ function renderStrip(A, B, now){
     var left = tr.getBoundingClientRect().left - tl.getBoundingClientRect().left;
     document.getElementById("nowline").style.left = (left + (A.hf/24)*tr.offsetWidth) + "px";
   }
-  document.getElementById("stripAnchor").textContent = state.places.a.name + "’s";
 }
 
 function render(){

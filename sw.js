@@ -9,7 +9,7 @@
  * state, which is the truth.
  */
 
-var CACHE = "here-and-there-v1";
+var CACHE = "here-and-there-v2";
 
 var SHELL = [
   "./",
