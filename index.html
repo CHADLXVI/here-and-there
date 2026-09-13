@@ -404,7 +404,7 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <section class="strip">
     <div class="strip-head">
       <h2>When to call</h2>
-      <p class="lede" id="stripLede">The top and bottom bars are each city&rsquo;s own day &mdash; orange while the sun is up, dark after it sets. The middle bar is about calling: green means you&rsquo;re both awake, the brighter the better, and red means someone is asleep.</p>
+      <p class="lede" id="stripLede">The top and bottom bars are each city&rsquo;s own day &mdash; bright yellow while the sun is up, dark orange after it sets. The middle bar is about calling: green means you&rsquo;re both awake, the brighter the better, and red means someone is asleep.</p>
     </div>
     <div class="tl" id="tl"></div>
     <p class="strip-foot">Weather from Open-Meteo &middot; clocks run offline</p>
@@ -1037,13 +1037,13 @@ function renderBridge(A, B, now){
     var sleeper = outB ? {n:nameB, h:B.hf} : {n:nameA, h:A.hf};
     dot.style.background = "var(--rest)";
     st.innerHTML = outA && outB ? "Nobody&rsquo;s awake right now"
-      : (sleeper.h < ANY.start ? "Too early to call " : "Too late to call ") + esc(sleeper.n);
+      : (sleeper.h < ANY.start ? "Too early to call" : "Too late to call");
     countdown = {kind:"opens", at: now.getTime() + open.open*3600e3};
     var sameWindow = best && Math.abs(best.open - open.open) < 0.01;
     next.innerHTML = (outA && outB
         ? "It&rsquo;s <b>" + localClock(A.hf) + "</b> in " + esc(nameA) + " and <b>" + localClock(B.hf) + "</b> in "
           + esc(nameB) + " &mdash; everyone&rsquo;s asleep."
-        : "It&rsquo;s <b>" + localClock(sleeper.h) + "</b> in " + esc(sleeper.n) + " &mdash; still asleep.")
+        : "It&rsquo;s <b>" + localClock(sleeper.h) + "</b> in " + esc(sleeper.n) + " &mdash; everyone&rsquo;s still asleep.")
       + " Wait " + cd + " and " + bothAt(open.open) + "."
       + (sameWindow || !best ? " That&rsquo;s a good time to call."
                              : " Early, but it works. Easiest for both: <b>"
