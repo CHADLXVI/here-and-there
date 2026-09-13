@@ -167,28 +167,31 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   box-shadow:var(--shadow);padding:11px 16px;
   display:flex;flex-direction:column;gap:2px;
 }
-/* glow picked up from the TALK band's own three greens, dim at the edges and
-   brightest in the middle, the way the band itself runs */
+/* The glow is the TALK band's current block, blown up: whichever of the three
+   greens the NOW line is sitting on, or red when nobody is reachable. */
+.bridge{--glow-edge:var(--talk-3); --glow-core:var(--talk-1); --glow-op:.62}
+.bridge.t2{--glow-edge:var(--talk-3); --glow-core:var(--talk-2); --glow-op:.58}
+.bridge.t3{--glow-edge:var(--talk-0); --glow-core:var(--talk-3); --glow-op:.72}
+.bridge.off{--glow-edge:var(--off-3); --glow-core:var(--off-1); --glow-op:.4}
 .bridge::before{
   content:"";position:absolute;inset:-11px -9px;z-index:-1;pointer-events:none;
   border-radius:calc(var(--radius) + 11px);
   background:linear-gradient(90deg,
-    var(--talk-3) 0%, var(--talk-2) 20%, var(--talk-1) 50%, var(--talk-2) 80%, var(--talk-3) 100%);
+    var(--glow-edge) 0%, var(--glow-core) 50%, var(--glow-edge) 100%);
   filter:blur(17px);
-  opacity:.62;
-}
-/* not a good time: same shape, red, and dimmer - it is a caution, not an alarm */
-.bridge.off::before{
-  background:linear-gradient(90deg,
-    var(--off-3) 0%, var(--off-2) 20%, var(--off-1) 50%, var(--off-2) 80%, var(--off-3) 100%);
-  opacity:.4;
+  opacity:var(--glow-op);
+  transition:opacity .4s ease;
 }
 @media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]) .bridge::before{opacity:.72}
-  :root:not([data-theme="light"]) .bridge.off::before{opacity:.5}
+  :root:not([data-theme="light"]) .bridge{--glow-op:.72}
+  :root:not([data-theme="light"]) .bridge.t2{--glow-op:.7}
+  :root:not([data-theme="light"]) .bridge.t3{--glow-op:.85}
+  :root:not([data-theme="light"]) .bridge.off{--glow-op:.5}
 }
-:root[data-theme="dark"] .bridge::before{opacity:.72}
-:root[data-theme="dark"] .bridge.off::before{opacity:.5}
+:root[data-theme="dark"] .bridge{--glow-op:.72}
+:root[data-theme="dark"] .bridge.t2{--glow-op:.7}
+:root[data-theme="dark"] .bridge.t3{--glow-op:.85}
+:root[data-theme="dark"] .bridge.off{--glow-op:.5}
 .bridge .now{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
 .bridge .now .status-dot{align-self:center}
 .bridge .now b{font-size:1rem;font-weight:600;letter-spacing:-.01em}
@@ -1004,8 +1007,15 @@ function renderBridge(A, B, now){
          + localClock(B.hf + off) + " " + state.places.b.name;
   }
 
+  /* exactly the block the NOW line is standing on in the TALK band */
+  var tierNow = talkTier(A.hf, B.hf);
   var box = document.querySelector(".bridge");
-  if(box) box.classList.toggle("off", !inBest && !inOpen);
+  if(box){
+    box.classList.remove("t2","t3","off");
+    if(tierNow === 2) box.classList.add("t2");
+    else if(tierNow === 3) box.classList.add("t3");
+    else if(tierNow === 0) box.classList.add("off");
+  }
 
   function at(off, slot){ return localClock((slot === "a" ? A.hf : B.hf) + off); }
   var nameA = state.places.a.name, nameB = state.places.b.name;
