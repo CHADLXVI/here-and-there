@@ -192,8 +192,9 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .bridge .now{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
 .bridge .now .status-dot{align-self:center}
 .bridge .now b{font-size:1rem;font-weight:600;letter-spacing:-.01em}
-.bridge .cd{font-size:1rem;font-weight:500;color:var(--ink-2);white-space:nowrap}
-.bridge .next{font-size:.79rem;color:var(--muted);padding-left:19px}
+.bridge .next .cd{font-weight:600;color:var(--ink);white-space:nowrap;font-size:.82rem}
+.bridge .next{font-size:.82rem;line-height:1.5;color:var(--ink-2);padding-left:19px;text-wrap:pretty}
+.bridge .next b{color:var(--ink);font-weight:600}
 .bridge .next:empty{display:none}
 .status-dot{width:10px;height:10px;border-radius:50%;flex:none}
 .bridge-main{display:flex;align-items:center;gap:10px;min-width:0}
@@ -360,7 +361,7 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .offset-pill .num{font-size:.92rem}
   button.ghost{padding:5px 11px;font-size:.78rem}
   .bridge{padding:10px 13px}
-  .bridge .now b,.bridge .cd{font-size:.94rem}
+  .bridge .now b{font-size:.94rem}
 }
 @media (max-width:840px){
   .cities{grid-template-columns:1fr}
@@ -394,7 +395,6 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <div class="now">
       <span class="status-dot" id="dot" style="background:var(--rest)"></span>
       <b id="callStatus">Working it out&hellip;</b>
-      <span class="cd num" id="callCountdown"></span>
     </div>
     <div class="next" id="callNext"></div>
   </section>
@@ -404,7 +404,7 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <section class="strip">
     <div class="strip-head">
       <h2>When to call</h2>
-      <p class="lede" id="stripLede">Amber is daylight, dark is night. On the middle band, green is when you&rsquo;re both up &mdash; brightest green is the sweet spot &mdash; and red is when one of you is asleep.</p>
+      <p class="lede" id="stripLede">The top and bottom bars are each city&rsquo;s own day &mdash; orange while the sun is up, dark after it sets. The middle bar is about calling: green means you&rsquo;re both awake, the brighter the better, and red means someone is asleep.</p>
     </div>
     <div class="tl" id="tl"></div>
     <p class="strip-foot">Weather from Open-Meteo &middot; clocks run offline</p>
@@ -978,7 +978,7 @@ function tickCountdown(){
   if(!countdown){ el.textContent = ""; return; }
   var left = countdown.at - Date.now();
   if(left <= 0){ render(); return; }
-  el.textContent = (countdown.kind === "opens" ? "in " : "") + dur(left) + (countdown.kind === "left" ? " left" : "");
+  el.textContent = dur(left);
 }
 
 function renderBridge(A, B, now){
@@ -1007,34 +1007,53 @@ function renderBridge(A, B, now){
   var box = document.querySelector(".bridge");
   if(box) box.classList.toggle("off", !inBest && !inOpen);
 
+  function at(off, slot){ return localClock((slot === "a" ? A.hf : B.hf) + off); }
+  var nameA = state.places.a.name, nameB = state.places.b.name;
+  /* "when it's 9:00 PM in Olympia and 6:00 AM in Angers" */
+  function bothAt(off){
+    return "it&rsquo;s <b>" + at(off,"a") + "</b> in " + esc(nameA)
+         + " and <b>" + at(off,"b") + "</b> in " + esc(nameB);
+  }
+  var cd = '<b class="cd num" id="callCountdown"></b>';
+
   if(inBest){
     dot.style.background = "var(--good)";
-    st.textContent = "Good time to call";
+    st.innerHTML = "Go ahead and call";
     countdown = {kind:"left", at: now.getTime() + best.close*3600e3};
-    next.textContent = "Until " + clocks(best.close);
+    next.innerHTML = "You&rsquo;re both wide awake. That holds for another " + cd
+      + ", until " + bothAt(best.close) + ".";
 
   } else if(inOpen){
+    var edge = hourTier(B.hf) > 1 ? {n:nameB, h:B.hf} : {n:nameA, h:A.hf};
     dot.style.background = "var(--warn)";
-    st.textContent = "Workable now";
+    st.innerHTML = "You can call, but it&rsquo;s a stretch";
     countdown = {kind:"left", at: now.getTime() + open.close*3600e3};
-    next.textContent = best ? "Best in " + dur(best.open*3600e3) + " \u00b7 " + clocks(best.open)
-                            : "Until " + clocks(open.close);
+    next.innerHTML = "It&rsquo;s " + (edge.h < BEST.start ? "early" : "late") + " in " + esc(edge.n)
+      + " (" + localClock(edge.h) + "), so keep it short. You have " + cd + " before someone needs to sleep."
+      + (best ? " Easiest for both: <b>" + dur(best.open*3600e3) + "</b> from now." : "");
 
   } else if(open){
-    var whoLate = hourTier(B.hf) === 0 ? B : A;
-    var whoName = hourTier(B.hf) === 0 ? state.places.b.name : state.places.a.name;
+    var outA = hourTier(A.hf) === 0, outB = hourTier(B.hf) === 0;
+    var sleeper = outB ? {n:nameB, h:B.hf} : {n:nameA, h:A.hf};
     dot.style.background = "var(--rest)";
-    st.textContent = (whoLate.hf < ANY.start ? "Too early in " : "Too late in ") + whoName;
+    st.innerHTML = outA && outB ? "Nobody&rsquo;s awake right now"
+      : (sleeper.h < ANY.start ? "Too early to call " : "Too late to call ") + esc(sleeper.n);
     countdown = {kind:"opens", at: now.getTime() + open.open*3600e3};
     var sameWindow = best && Math.abs(best.open - open.open) < 0.01;
-    next.textContent = clocks(open.open)
-      + (sameWindow || !best ? "" : " \u00b7 best in " + dur(best.open*3600e3));
+    next.innerHTML = (outA && outB
+        ? "It&rsquo;s <b>" + localClock(A.hf) + "</b> in " + esc(nameA) + " and <b>" + localClock(B.hf) + "</b> in "
+          + esc(nameB) + " &mdash; everyone&rsquo;s asleep."
+        : "It&rsquo;s <b>" + localClock(sleeper.h) + "</b> in " + esc(sleeper.n) + " &mdash; still asleep.")
+      + " Wait " + cd + " and " + bothAt(open.open) + "."
+      + (sameWindow || !best ? " That&rsquo;s a good time to call."
+                             : " Early, but it works. Easiest for both: <b>"
+                               + dur(best.open*3600e3) + "</b> from now.");
 
   } else {
     countdown = null;
     dot.style.background = "var(--rest)";
-    st.textContent = "No shared hours";
-    next.textContent = "";
+    st.innerHTML = "You&rsquo;ll never both be awake";
+    next.innerHTML = "These two cities are too far apart &mdash; when one is up, the other is always asleep.";
   }
   tickCountdown();
 }
