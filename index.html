@@ -298,10 +298,11 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .results button:hover,.results button:focus-visible{background:var(--accent-soft);outline:none}
 .results .r-sub{display:block;color:var(--muted);font-size:.76rem}
 .results .empty{padding:11px 13px;color:var(--muted);font-size:.82rem}
-.recents{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 auto;justify-content:flex-end}
+.recents{display:flex;flex-wrap:nowrap;gap:6px;flex:1 1 auto;justify-content:flex-end;overflow:hidden}
 .recents button{
   font:inherit;font-size:.75rem;background:var(--surface-2);color:var(--ink-2);
   border:1px solid var(--line-soft);border-radius:999px;padding:4px 10px;cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:104px;flex:0 1 auto;
 }
 .recents button:hover{border-color:var(--accent);color:var(--accent)}
 .recents button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
@@ -857,7 +858,8 @@ function renderRecents(){
   ["a","b"].forEach(function(slot){
     var el = document.getElementById("rec-"+slot);
     var cur = state.places[slot];
-    var list = state.recents.filter(function(r){ return !(r.name === cur.name && r.tz === cur.tz); }).slice(0,5);
+    /* three at most - the card must never change height because of these */
+    var list = state.recents.filter(function(r){ return !(r.name === cur.name && r.tz === cur.tz); }).slice(0,3);
     if(!list.length){ el.innerHTML = ""; return; }
     el.innerHTML = list.map(function(r,i){ return '<button type="button" data-i="'+i+'">'+esc(r.name)+'</button>'; }).join("");
     Array.prototype.forEach.call(el.querySelectorAll("button"), function(b){

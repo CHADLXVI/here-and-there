@@ -14,7 +14,7 @@ Live time and weather in two places at once — built to keep track of what time
 - **A "When to call" chart** — the next 24 hours for both cities, with the hours you can reach each other in between them
 - **The time difference** between the two
 
-Either city can be changed at any time — search any city worldwide. Your two picks and your recent cities are remembered in your own browser.
+Either city can be changed at any time — search any city worldwide, or tap one of the three most recent. Your two picks and your history are remembered in your own browser.
 
 ## When to call
 
@@ -67,6 +67,6 @@ One HTML file plus a manifest, a service worker, and three icons. No build step,
 
 Replace `index.html` and commit. GitHub Pages redeploys in about a minute at the same URL.
 
-**Bump `CACHE` in `sw.js` in the same commit** (`here-and-there-v13` → `v14`). The service worker serves the cached copy first, so without a new cache name anyone who has already opened the page keeps getting the old one.
+**Bump `CACHE` in `sw.js` in the same commit** (`here-and-there-v14` → `v15`). The service worker serves the cached copy first, so without a new cache name anyone who has already opened the page keeps getting the old one.
 
 To run it without GitHub at all, download `index.html` and open it — it works from a local file just as well.
