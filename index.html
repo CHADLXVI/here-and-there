@@ -158,14 +158,29 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* ---------- bridge ---------- */
 .bridge{
+  position:relative;
   background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
-  box-shadow:var(--shadow);padding:15px 20px;
+  box-shadow:var(--shadow);padding:11px 16px;
+  display:flex;flex-direction:column;gap:2px;
 }
-.bridge #callNote{
-  margin:0;font-size:1.02rem;line-height:1.45;color:var(--ink-2);
-  text-wrap:pretty;
+/* glow picked up from the TALK band's own three greens, dim at the edges and
+   brightest in the middle, the way the band itself runs */
+.bridge::before{
+  content:"";position:absolute;inset:-11px -9px;z-index:-1;pointer-events:none;
+  border-radius:calc(var(--radius) + 11px);
+  background:linear-gradient(90deg,
+    var(--talk-3) 0%, var(--talk-2) 20%, var(--talk-1) 50%, var(--talk-2) 80%, var(--talk-3) 100%);
+  filter:blur(17px);
+  opacity:.62;
 }
-.bridge #callNote b{color:var(--ink);font-weight:600}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .bridge::before{opacity:.72} }
+:root[data-theme="dark"] .bridge::before{opacity:.72}
+.bridge .now{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.bridge .now .status-dot{align-self:center}
+.bridge .now b{font-size:1rem;font-weight:600;letter-spacing:-.01em}
+.bridge .cd{font-size:1rem;font-weight:500;color:var(--ink-2);white-space:nowrap}
+.bridge .next{font-size:.79rem;color:var(--muted);padding-left:19px}
+.bridge .next:empty{display:none}
 .status-dot{width:10px;height:10px;border-radius:50%;flex:none}
 .bridge-main{display:flex;align-items:center;gap:10px;min-width:0}
 .bridge-main strong{font-size:1.02rem;font-weight:600;letter-spacing:-.01em}
@@ -321,6 +336,18 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 }
 
 @media (max-width:1000px){ .top-actions{flex-wrap:wrap} }
+@media (max-width:620px){
+  .top{flex-wrap:nowrap;gap:10px}
+  .brand{flex:1 1 auto}
+  .brand h1{font-size:1.15rem}
+  .top-actions{gap:6px}
+  .offset-pill{padding:4px 10px}
+  .offset-pill span:last-child{display:none}
+  .offset-pill .num{font-size:.92rem}
+  button.ghost{padding:5px 11px;font-size:.78rem}
+  .bridge{padding:10px 13px}
+  .bridge .now b,.bridge .cd{font-size:.94rem}
+}
 @media (max-width:840px){
   .cities{grid-template-columns:1fr}
   .tl-name{width:74px;font-size:.72rem}
@@ -350,7 +377,12 @@ button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <div id="errbox"></div>
 
   <section class="bridge">
-    <p id="callNote">Working it out&hellip;</p>
+    <div class="now">
+      <span class="status-dot" id="dot" style="background:var(--rest)"></span>
+      <b id="callStatus">Working it out&hellip;</b>
+      <span class="cd num" id="callCountdown"></span>
+    </div>
+    <div class="next" id="callNext"></div>
   </section>
 
   <section class="cities" id="cities"></section>
@@ -943,15 +975,9 @@ function renderBridge(A, B, now){
   document.getElementById("offsetVal").textContent = (diff === 0 ? "" : (diff > 0 ? "+" : "−")) + hrs + (mins ? ":"+pad(mins) : "") + "h";
   document.getElementById("offsetDir").textContent = diff === 0 ? "same time" : (diff > 0 ? "ahead" : "behind");
 
-  var note = document.getElementById("callNote");
-  /* the header pill was removed; these stay optional so the logic below
-     can keep setting them if it ever comes back */
-  var dot = document.getElementById("dot") || {style:{}},
-      st  = document.getElementById("callStatus") || {};
-
-  var dayNote = A.dayKey === B.dayKey ? "Same calendar day."
-              : (B.dayKey > A.dayKey ? "It’s already " + B.weekday + " in " + state.places.b.name + "."
-                                     : "It’s still " + B.weekday + " in " + state.places.b.name + ".");
+  var dot  = document.getElementById("dot"),
+      st   = document.getElementById("callStatus"),
+      next = document.getElementById("callNext");
 
   /* two horizons: the comfortable one, and the widest the chart still shades */
   var best = callWindow(A.hf, B.hf, BEST),
@@ -959,54 +985,39 @@ function renderBridge(A, B, now){
   var inBest = best && best.open === 0,
       inOpen = open && open.open === 0;
 
-  /* when the pair is a stretch, name the city that makes it one */
-  function pinch(off){
-    var ha = A.hf + off, hb = B.hf + off;
-    var bad = hourTier(hb) > 1 ? "b" : (hourTier(ha) > 1 ? "a" : null);
-    if(!bad) return null;
-    var h = bad === "b" ? hb : ha;
-    return {name: state.places[bad].name, early: (((h % 24) + 24) % 24) < BEST.start};
-  }
-  function bothClocks(off){
-    return "<b>" + localClock(A.hf + off) + " in " + state.places.a.name + "</b> / <b>"
-         + localClock(B.hf + off) + " in " + state.places.b.name + "</b>";
+  function clocks(off){
+    return localClock(A.hf + off) + " " + state.places.a.name + " / "
+         + localClock(B.hf + off) + " " + state.places.b.name;
   }
 
   if(inBest){
     dot.style.background = "var(--good)";
     st.textContent = "Good time to call";
     countdown = {kind:"left", at: now.getTime() + best.close*3600e3};
-    note.innerHTML = dayNote + " You&rsquo;re both comfortably up until " + bothClocks(best.close)
-      + " &mdash; <b>" + dur(best.close*3600e3) + "</b> of overlap left.";
+    next.textContent = "Until " + clocks(best.close);
 
   } else if(inOpen){
-    var p = pinch(0);
     dot.style.background = "var(--warn)";
-    st.textContent = p ? ((p.early ? "Early in " : "Late in ") + p.name + ", but awake") : "Worth a try";
+    st.textContent = "Workable now";
     countdown = {kind:"left", at: now.getTime() + open.close*3600e3};
-    note.innerHTML = dayNote + " Not the sweet spot, but you can reach each other for another <b>"
-      + dur(open.close*3600e3) + "</b>."
-      + (best ? " The comfortable window opens at " + bothClocks(best.open) + ", <b>"
-                + dur(best.open*3600e3) + "</b> from now." : "");
+    next.textContent = best ? "Best in " + dur(best.open*3600e3) + " \u00b7 " + clocks(best.open)
+                            : "Until " + clocks(open.close);
 
   } else if(open){
-    var pn = pinch(open.open + 0.01);
-    var whoNow = hourTier(B.hf) === 0 ? state.places.b.name : state.places.a.name;
-    var hNow   = hourTier(B.hf) === 0 ? B.hf : A.hf;
+    var whoLate = hourTier(B.hf) === 0 ? B : A;
+    var whoName = hourTier(B.hf) === 0 ? state.places.b.name : state.places.a.name;
     dot.style.background = "var(--rest)";
-    st.textContent = (hNow < ANY.start ? "Too early in " : "Too late in ") + whoNow;
+    st.textContent = (whoLate.hf < ANY.start ? "Too early in " : "Too late in ") + whoName;
     countdown = {kind:"opens", at: now.getTime() + open.open*3600e3};
     var sameWindow = best && Math.abs(best.open - open.open) < 0.01;
-    note.innerHTML = dayNote + " " + (sameWindow ? "The next good window opens at " : "There&rsquo;s a workable window at ")
-      + bothClocks(open.open) + " &mdash; <b>" + dur(open.open*3600e3) + "</b> from now."
-      + (!sameWindow && best ? " The comfortable one starts at " + bothClocks(best.open) + ", <b>"
-                + dur(best.open*3600e3) + "</b> from now." : "");
+    next.textContent = clocks(open.open)
+      + (sameWindow || !best ? "" : " \u00b7 best in " + dur(best.open*3600e3));
 
   } else {
     countdown = null;
     dot.style.background = "var(--rest)";
     st.textContent = "No shared hours";
-    note.textContent = dayNote + " These two cities never share waking hours.";
+    next.textContent = "";
   }
   tickCountdown();
 }
